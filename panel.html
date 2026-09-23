@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel strony — Biblioteka</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#f4f1ea;--paper:#fff;--ink:#231d16;--dim:#8a7d6d;--line:#e4dccd;
+  --acc:#b08b3f;--ok:#3f8f63;--zle:#c0392b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:880px;margin:0 auto;padding:0 18px}
+
+/* logowanie */
+#login{min-height:100svh;display:grid;place-items:center;padding:20px}
+.karta{background:var(--paper);border:1px solid var(--line);border-radius:18px;
+  padding:38px 34px;width:min(420px,100%);box-shadow:0 30px 60px -40px rgba(35,29,22,.5)}
+.karta h1{font-size:23px;font-weight:800;margin-bottom:6px;letter-spacing:-.3px}
+.karta p{color:var(--dim);font-size:14.5px;margin-bottom:24px}
+
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.wsk{font-weight:400;color:var(--dim);font-size:12.5px;margin-left:6px}
+input,textarea{width:100%;font:inherit;font-size:15px;color:var(--ink);background:#fff;
+  border:1px solid var(--line);border-radius:9px;padding:11px 13px;transition:.18s}
+input:focus,textarea:focus{outline:0;border-color:var(--acc);
+  box-shadow:0 0 0 3px rgba(176,139,63,.16)}
+textarea{min-height:70px;resize:vertical;line-height:1.5}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;
+  font-size:15px;font-weight:700;border:0;border-radius:999px;padding:13px 26px;cursor:pointer;
+  transition:.2s}
+.btn-p{background:var(--ink);color:#fff}
+.btn-p:hover{background:var(--acc)}
+.btn-p:disabled{opacity:.5;cursor:default}
+.btn-s{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn-s:hover{border-color:var(--ink)}
+.err{color:var(--zle);font-size:14px;margin-top:12px;display:none}
+
+/* panel */
+#panel{display:none;padding-bottom:110px}
+header{background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 0 0}
+.hd b{font-size:17px}
+.hd .sub{color:var(--dim);font-size:13.5px}
+.hd a{color:var(--acc);font-weight:700;font-size:14px;text-decoration:none}
+.zakladki{display:flex;gap:4px;overflow-x:auto;padding-top:12px}
+.zakladki button{background:none;border:0;border-bottom:2px solid transparent;font:inherit;
+  font-size:15px;font-weight:600;color:var(--dim);padding:11px 16px;cursor:pointer;
+  white-space:nowrap;transition:.18s}
+.zakladki button:hover{color:var(--ink)}
+.zakladki button.akt{color:var(--ink);border-bottom-color:var(--acc)}
+
+.tab{display:none}
+.tab.akt{display:block}
+
+.wstep{background:#fffdf8;border:1px solid var(--line);border-left:3px solid var(--acc);
+  border-radius:0 10px 10px 0;padding:15px 20px;margin-top:22px;font-size:14.5px;color:var(--dim)}
+.sekcja{background:var(--paper);border:1px solid var(--line);border-radius:14px;
+  padding:26px 26px 24px;margin-top:18px}
+.sekcja h2{font-size:17px;font-weight:800;margin-bottom:4px}
+.sekcja .op{color:var(--dim);font-size:14px;margin-bottom:20px}
+.pola{display:grid;gap:16px}
+.dwa{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:620px){.dwa{grid-template-columns:1fr}}
+
+/* zdjęcia */
+.fotki{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:620px){.fotki{grid-template-columns:1fr}}
+.fot{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fdfbf9}
+.fot .pod2{aspect-ratio:16/10;background:#efe9e2;overflow:hidden;position:relative}
+.fot .pod2 img{width:100%;height:100%;object-fit:cover;display:block}
+.fot .pod2 .pust{position:absolute;inset:0;display:grid;place-items:center;color:var(--dim);
+  font-size:13.5px}
+.fot .sp{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fot .sp b{font-size:14px}
+.fot .stanf{font-size:12.5px;color:var(--dim)}
+.fot label.wgraj{font-size:13.5px;font-weight:700;color:#fff;background:var(--ink);
+  border-radius:999px;padding:9px 16px;cursor:pointer;transition:.2s;white-space:nowrap}
+.fot label.wgraj:hover{background:var(--acc)}
+.fot input[type=file]{display:none}
+
+/* karta dań */
+.kat{background:var(--paper);border:1px solid var(--line);border-radius:14px;
+  padding:22px 22px 18px;margin-top:18px}
+.kat-hd{display:flex;gap:12px;align-items:flex-end;margin-bottom:6px}
+.kat-hd .pole{flex:1}
+.kat-hd input{font-size:18px;font-weight:700;padding:10px 12px}
+.ikonka{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;
+  display:grid;place-items:center;cursor:pointer;transition:.18s;flex:none;color:var(--dim)}
+.ikonka:hover{border-color:var(--zle);color:var(--zle);background:#fff5f4}
+.ikonka svg{width:17px;height:17px}
+.ikonka.mv:hover{border-color:var(--acc);color:var(--acc);background:#fffaf0}
+.ikonka:disabled{opacity:.3;cursor:default}
+.ikonka:disabled:hover{border-color:var(--line);color:var(--dim);background:#fff}
+.danie{border-top:1px dashed var(--line)}
+.danie .glowa{display:flex;align-items:center;gap:12px;padding:13px 4px;cursor:pointer;
+  user-select:none;border-radius:8px;transition:background .15s}
+.danie .glowa:hover{background:#faf7f0}
+.danie .strzalka{width:22px;height:22px;flex:none;display:grid;place-items:center;
+  color:var(--dim);transition:transform .22s cubic-bezier(.16,1,.3,1)}
+.danie .strzalka svg{width:13px;height:13px}
+.danie.otwarte .strzalka{transform:rotate(90deg);color:var(--acc)}
+.danie .tytul{flex:1;font-weight:600;font-size:16px;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.danie .tytul.brak{color:var(--dim);font-weight:400;font-style:italic}
+.danie .cenka{color:var(--dim);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.danie .pola2{display:none;padding:2px 4px 18px 34px;gap:12px}
+@media(max-width:620px){.danie .pola2{padding-left:8px}}
+.danie.otwarte .pola2{display:grid}
+.danie .dwie{display:grid;grid-template-columns:1fr 130px;gap:12px}
+@media(max-width:620px){.danie .dwie{grid-template-columns:1fr}}
+.danie .nazwa input{font-weight:600}
+.puste{color:var(--dim);font-size:14px;padding:14px 0;border-top:1px dashed var(--line)}
+.dodaj{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.link{background:none;border:0;color:var(--acc);font:inherit;font-size:14.5px;font-weight:700;
+  cursor:pointer;padding:6px 0}
+.link:hover{text-decoration:underline}
+
+.pasek{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:14px 0;z-index:30}
+.pasek .in{display:flex;align-items:center;gap:16px;justify-content:space-between}
+.stan{font-size:14px;color:var(--dim)}
+.stan.ok{color:var(--ok);font-weight:700}
+.stan.zle{color:var(--zle);font-weight:700}
+@media(max-width:560px){.pasek .in{flex-direction:column-reverse;gap:10px}
+  .pasek .btn{width:100%}}
+
+/* aktualności */
+.wpis{border:1px solid var(--linia);border-radius:10px;margin-bottom:10px;background:#fff;overflow:hidden}
+.wpis .glowa{display:flex;align-items:center;gap:10px;padding:13px 15px;cursor:pointer}
+.wpis .glowa .strzal{flex:none;width:9px;height:9px;border-right:2px solid #9aa3ad;
+  border-bottom:2px solid #9aa3ad;transform:rotate(45deg);transition:.2s;margin-top:-3px}
+.wpis.otwarte .glowa .strzal{transform:rotate(-135deg);margin-top:3px}
+.wpis .tyt{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wpis .tyt.brak{color:#b3271e;font-weight:500}
+.wpis .dat{font-size:12.5px;color:#7b848e;white-space:nowrap}
+.wpis .srodek{display:none;padding:0 15px 15px;border-top:1px solid var(--linia)}
+.wpis.otwarte .srodek{display:block}
+.wpis .rzad{display:grid;grid-template-columns:1fr 150px;gap:12px}
+@media(max-width:620px){.wpis .rzad{grid-template-columns:1fr}}
+.wpis .fotobox{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.wpis .podglad{width:130px;height:86px;object-fit:cover;border-radius:8px;border:1px solid var(--linia);display:none}
+.wpis .pusto{width:130px;height:86px;border-radius:8px;border:1px dashed #cfd5db;display:grid;
+  place-items:center;color:#9aa3ad;font-size:12.5px}
+.wpis .akcje{display:flex;justify-content:flex-end;margin-top:12px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <form class="karta" id="formLog">
+    <h1>Panel strony</h1>
+    <p>Wpisz hasło, które dostałeś ode mnie. W jednym
+        miejscu zmienisz kontakt, godziny, teksty, zdjęcia i aktualności.</p>
+    <label for="haslo">Hasło</label>
+    <input type="password" id="haslo" autocomplete="current-password" required>
+    <button class="btn btn-p" style="width:100%;margin-top:18px" type="submit">Zaloguj się</button>
+    <div class="err" id="blad">Nieprawidłowe hasło. Spróbuj jeszcze raz.</div>
+  </form>
+</div>
+
+<div id="panel">
+  <header>
+    <div class="wrap">
+      <div class="hd">
+        <div><b>Panel strony</b><div class="sub">Stołowa·9</div></div>
+        <a href="/" target="_blank">Zobacz stronę ↗</a>
+      </div>
+      <div class="zakladki">
+        <button class="akt" data-tab="kontakt">Kontakt i godziny</button>
+        <button data-tab="teksty">Teksty</button>
+        <button data-tab="zdjecia">Zdjęcia</button>
+        <button data-tab="akt">Aktualności</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- KONTAKT -->
+    <div class="tab akt" id="t-kontakt">
+      <div class="wstep">Dane widoczne na górze strony, w stopce i w sekcji kontaktu.</div>
+      <div class="sekcja">
+        <h2>Kontakt</h2>
+        <label>Adres<input data-p="adres" placeholder="ul. Przykładowa 12, 41-400 Mysłowice"></label>
+        <label>Telefon<input data-p="telefon" placeholder="32 000 00 00"></label>
+        <label>E-mail<input data-p="email" placeholder="kontakt@biblioteka.pl"></label>
+      </div>
+      <div class="sekcja">
+        <h2>Godziny otwarcia</h2>
+        <p class="op">Biblioteka główna. Zostaw puste, jeśli w danym dniu nieczynne.</p>
+        <label>Poniedziałek<input data-p="godz_pn" placeholder="9:00 – 18:00"></label>
+        <label>Wtorek<input data-p="godz_wt"></label>
+        <label>Środa<input data-p="godz_sr"></label>
+        <label>Czwartek<input data-p="godz_cz"></label>
+        <label>Piątek<input data-p="godz_pt"></label>
+        <label>Sobota<input data-p="godz_sb"></label>
+      </div>
+      <div class="sekcja">
+        <h2>Odnośniki</h2>
+        <label>Katalog online<input data-p="katalog_link" placeholder="https://..."></label>
+        <label>Biuletyn Informacji Publicznej<input data-p="bip_link" placeholder="https://..."></label>
+        <label>Facebook<input data-p="facebook_link" placeholder="https://..."></label>
+      </div>
+    </div>
+
+    <!-- TEKSTY -->
+    <div class="tab" id="t-teksty">
+      <div class="wstep">Nagłówek powitalny, opis biblioteki i dane filii.</div>
+      <div class="sekcja">
+        <h2>Nagłówek na górze</h2>
+        <label>Tytuł<input data-p="hero_tytul"></label>
+        <label>Tekst pod tytułem<textarea data-p="hero_tekst" rows="3"></textarea></label>
+      </div>
+      <div class="sekcja">
+        <h2>O bibliotece</h2>
+        <label>Tytuł<input data-p="onas_tytul"></label>
+        <label>Treść<textarea data-p="onas_tekst" rows="5"></textarea></label>
+      </div>
+      <div class="sekcja">
+        <h2>Filia nr 1</h2>
+        <label>Nazwa<input data-p="filia1_nazwa"></label>
+        <label>Adres<input data-p="filia1_adres"></label>
+        <label>Godziny<input data-p="filia1_godziny"></label>
+      </div>
+      <div class="sekcja">
+        <h2>Filia nr 2</h2>
+        <label>Nazwa<input data-p="filia2_nazwa"></label>
+        <label>Adres<input data-p="filia2_adres"></label>
+        <label>Godziny<input data-p="filia2_godziny"></label>
+      </div>
+    </div>
+
+    <!-- ZDJĘCIA -->
+    <div class="tab" id="t-zdjecia">
+      <div class="wstep">
+        Wybierz plik z komputera albo zrób zdjęcie telefonem. Zmniejszam je automatycznie,
+        więc nie musisz się przejmować rozmiarem. <b>Zdjęcia zapisują się od razu</b> po wybraniu.
+      </div>
+      <div class="sekcja">
+        <h2>Zdjęcia na stronie</h2>
+        <p class="op">Zdjęcie na górze strony, zdjęcie przy opisie biblioteki i trzy zdjęcia w galerii.</p>
+        <div class="fotki" id="fotki"></div>
+      </div>
+    </div>
+
+
+    <!-- AKTUALNOŚCI -->
+    <div class="tab" id="t-akt">
+      <div class="wstep">
+        Wydarzenia, ogłoszenia, nowości. Najnowsze pojawiają się na stronie u góry.
+        Kliknij tytuł, żeby rozwinąć wpis. <b>Zdjęcie zapisuje się od razu</b> po wybraniu,
+        resztę zapisujesz przyciskiem na dole.
+      </div>
+      <div id="listaAkt"></div>
+      <div class="dodaj"><button class="btn btn-s" id="dodajAkt">+ Dodaj aktualność</button></div>
+    </div>
+
+  </div>
+
+  <div class="pasek">
+    <div class="wrap in">
+      <span class="stan" id="stan">Zmiany zobaczysz na stronie zaraz po zapisaniu.</span>
+      <button class="btn btn-p" id="zapisz">Zapisz zmiany</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let HASLO="";
+const OTWARTE=new Set();
+
+const FOTKI=[
+  ["hero","Tło nagłówka","na samej górze strony"],
+  ["onas","Zdjęcie przy „O bibliotece”","obok opisu"],
+  ["g1","Galeria — zdjęcie 1","wnętrze"],
+  ["g2","Galeria — zdjęcie 2","wnętrze"],
+  ["g3","Galeria — zdjęcie 3","wnętrze"]
+];
+
+
+const STRZ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ——— zakładki ——— */
+document.querySelectorAll('.zakladki button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.zakladki button').forEach(x=>x.classList.remove('akt'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('akt'));
+    b.classList.add('akt'); $('#t-'+b.dataset.tab).classList.add('akt');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+/* ——— zdjęcia ——— */
+function rysujFotki(){
+  $('#fotki').innerHTML=FOTKI.map(([k,t,o])=>
+    '<div class="fot"><div class="pod2"><span class="pust">'+t+'</span>'+
+    '<img id="p_'+k+'" style="display:none"></div>'+
+    '<div class="sp"><div><b>'+t+'</b><div class="stanf" id="s_'+k+'">'+o+'</div></div>'+
+    '<label class="wgraj">Zmień<input type="file" accept="image/*" data-foto="'+k+'"></label></div></div>').join('');
+  $('#fotki').querySelectorAll('input[type=file]').forEach(inp=>inp.addEventListener('change',wgraj));
+}
+function zmniejsz(plik,maks=1600,jakosc=.82){
+  return new Promise((ok,zle)=>{
+    const c1=new FileReader();
+    c1.onload=()=>{const im=new Image();
+      im.onload=()=>{let {width:w,height:h}=im;
+        if(Math.max(w,h)>maks){const sk=maks/Math.max(w,h);w=Math.round(w*sk);h=Math.round(h*sk);}
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(im,0,0,w,h);ok(c.toDataURL('image/jpeg',jakosc));};
+      im.onerror=zle;im.src=c1.result;};
+    c1.onerror=zle;c1.readAsDataURL(plik);});
+}
+async function wgraj(){
+  const inp=this, plik=inp.files[0]; if(!plik) return;
+  const k=inp.dataset.foto, st=$('#s_'+k), pod=$('#p_'+k);
+  st.textContent='Przygotowuję…'; st.style.color='';
+  try{
+    const dane=await zmniejsz(plik);
+    pod.src=dane; pod.style.display='block'; pod.previousElementSibling.style.display='none';
+    st.textContent='Wysyłam…';
+    const r=await fetch('/api/zdjecie/'+k,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({haslo:HASLO,dane})});
+    const w=await r.json(); if(!r.ok) throw new Error(w.blad||'blad');
+    st.textContent='✓ Zapisane'; st.style.color='#3f8f63';
+  }catch(e){
+    st.textContent = e.message==='za-duze' ? 'Zdjęcie za duże — wybierz inne' : 'Nie udało się wysłać';
+    st.style.color='#c0392b';
+  }
+  inp.value='';
+}
+
+/* ——— aktualności ——— */
+let AKT={wpisy:[]};
+const OTW_AKT=new Set();
+const dzis=()=>new Date().toISOString().slice(0,10);
+const poPolsku=d=>{ if(!d) return 'bez daty';
+  try{ return new Date(d+'T12:00:00').toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'}); }
+  catch(e){ return d; } };
+
+function rysujAkt(){
+  const c=$('#listaAkt');
+  if(!AKT.wpisy.length){ c.innerHTML='<p class="op">Nie ma jeszcze żadnych wpisów. Dodaj pierwszy poniżej.</p>'; return; }
+  c.innerHTML=AKT.wpisy.map((w,i)=>{
+    const ot=OTW_AKT.has(w.id)?' otwarte':'';
+    const tyt=w.tytul||'Wpis bez tytułu';
+    return '<div class="wpis'+ot+'" data-i="'+i+'">'+
+      '<div class="glowa" data-akcja="zwin" data-i="'+i+'">'+
+        '<i class="strzal"></i>'+
+        '<span class="tyt'+(w.tytul?'':' brak')+'" data-tytul="'+i+'">'+tyt.replace(/</g,'&lt;')+'</span>'+
+        '<span class="dat" data-datka="'+i+'">'+poPolsku(w.data)+'</span>'+
+      '</div>'+
+      '<div class="srodek">'+
+        '<div class="rzad">'+
+          '<label>Tytuł<input data-a="tytul" data-i="'+i+'" value="'+(w.tytul||'').replace(/"/g,'&quot;')+'" placeholder="np. Spotkanie autorskie"></label>'+
+          '<label>Data<input type="date" data-a="data" data-i="'+i+'" value="'+(w.data||'')+'"></label>'+
+        '</div>'+
+        '<label style="display:block;margin-top:12px">Treść'+
+          '<textarea data-a="tresc" data-i="'+i+'" rows="4" placeholder="Kilka zdań o wydarzeniu">'+(w.tresc||'').replace(/</g,'&lt;')+'</textarea></label>'+
+        '<div class="fotobox">'+
+          '<div class="pusto" id="ap_pusto_'+w.id+'">bez zdjęcia</div>'+
+          '<img class="podglad" id="ap_'+w.id+'" alt="">'+
+          '<div><input type="file" accept="image/*" data-akt-foto="'+w.id+'" style="max-width:220px">'+
+            '<div class="op" id="as_'+w.id+'">Zdjęcie zapisuje się od razu</div></div>'+
+        '</div>'+
+        '<div class="akcje"><button class="link" data-akcja="usun" data-i="'+i+'">Usuń wpis</button></div>'+
+      '</div></div>';
+  }).join('');
+  AKT.wpisy.forEach(w=>{
+    if(w.foto){ const im=$('#ap_'+w.id); if(im){ im.src='/api/akt-foto/'+w.id+'?v='+Date.now();
+      im.style.display='block'; const pu=$('#ap_pusto_'+w.id); if(pu) pu.style.display='none'; } }
+  });
+}
+
+$('#listaAkt').addEventListener('input',e=>{
+  const el=e.target; if(el.dataset.a===undefined) return;
+  const i=+el.dataset.i; AKT.wpisy[i][el.dataset.a]=el.value;
+  if(el.dataset.a==='tytul'){ const t=document.querySelector('[data-tytul="'+i+'"]');
+    if(t){ t.textContent=el.value||'Wpis bez tytułu'; t.classList.toggle('brak',!el.value); } }
+  if(el.dataset.a==='data'){ const d=document.querySelector('[data-datka="'+i+'"]');
+    if(d) d.textContent=poPolsku(el.value); }
+});
+
+$('#listaAkt').addEventListener('change',async e=>{
+  const inp=e.target; const id=inp.dataset.aktFoto; if(!id) return;
+  const plik=inp.files[0]; if(!plik) return;
+  const st=$('#as_'+id), im=$('#ap_'+id), pu=$('#ap_pusto_'+id);
+  st.textContent='Przygotowuję…'; st.style.color='';
+  try{
+    const dane=await zmniejsz(plik,1400,.8);
+    im.src=dane; im.style.display='block'; if(pu) pu.style.display='none';
+    st.textContent='Wysyłam…';
+    const r=await fetch('/api/akt-foto/'+id,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({haslo:HASLO,dane})});
+    const w=await r.json(); if(!r.ok) throw new Error(w.blad||'blad');
+    const wp=AKT.wpisy.find(x=>x.id===id); if(wp) wp.foto=true;
+    st.textContent='✓ Zapisane'; st.style.color='#3f8f63';
+  }catch(err){
+    st.textContent = err.message==='za-duze' ? 'Zdjęcie za duże — wybierz inne' : 'Nie udało się wysłać';
+    st.style.color='#c0392b';
+  }
+  inp.value='';
+});
+
+$('#listaAkt').addEventListener('click',e=>{
+  const b=e.target.closest('[data-akcja]'); if(!b) return;
+  const i=+b.dataset.i, a=b.dataset.akcja;
+  if(a==='zwin'){
+    const w=AKT.wpisy[i], box=b.closest('.wpis');
+    if(OTW_AKT.has(w.id)){ OTW_AKT.delete(w.id); box.classList.remove('otwarte'); }
+    else { OTW_AKT.add(w.id); box.classList.add('otwarte');
+      const inp=box.querySelector('input[data-a=tytul]'); if(inp) setTimeout(()=>inp.focus(),80); }
+    return;
+  }
+  if(a==='usun'){
+    if(!confirm('Usunąć wpis „'+(AKT.wpisy[i].tytul||'bez tytułu')+'"?')) return;
+    OTW_AKT.delete(AKT.wpisy[i].id); AKT.wpisy.splice(i,1); rysujAkt();
+  }
+});
+
+$('#dodajAkt').addEventListener('click',()=>{
+  const id='w'+Date.now().toString(36);
+  AKT.wpisy.unshift({id,tytul:'',tresc:'',data:dzis(),foto:false});
+  OTW_AKT.add(id); rysujAkt();
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ——— logowanie ——— */
+$('#formLog').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const h=$('#haslo').value;
+  const r=await fetch('/api/zapisz',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({haslo:h,sprawdz:true})});
+  if(!r.ok){ $('#blad').style.display='block'; return; }
+  HASLO=h; $('#login').style.display='none'; $('#panel').style.display='block';
+  rysujFotki();
+  const t=await (await fetch('/api/tresc',{cache:'no-store'})).json();
+  document.querySelectorAll('[data-p]').forEach(el=>{
+    const v=(t.pola||{})[el.dataset.p]; if(v!==undefined) el.value=v; });
+  for(const k of Object.keys(t.zdjecia||{})){
+    const pod=$('#p_'+k);
+    if(pod){ pod.src='/api/zdjecie/'+k+'?v='+t.zdjecia[k]; pod.style.display='block';
+      pod.previousElementSibling.style.display='none'; }
+  }
+
+  const a=await (await fetch('/api/aktualnosci',{cache:'no-store'})).json();
+  AKT=(a&&Array.isArray(a.wpisy))?a:{wpisy:[]};
+  rysujAkt();
+});
+
+/* ——— zapis wszystkiego ——— */
+$('#zapisz').addEventListener('click',async ()=>{
+  const b=$('#zapisz'), st=$('#stan');
+  b.disabled=true; st.className='stan'; st.textContent='Zapisuję…';
+  try{
+    const pola={}; document.querySelectorAll('[data-p]').forEach(el=>pola[el.dataset.p]=el.value);
+    const r1=await fetch('/api/zapisz',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({haslo:HASLO,pola})});
+    const r3=await fetch('/api/aktualnosci',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({haslo:HASLO,wpisy:AKT.wpisy})});
+    if(!r1.ok||!r3.ok) throw 0;
+    const w3=await r3.json();
+    st.className='stan ok';
+    st.textContent='✓ Zapisane — teksty, dane i aktualności ('+w3.wpisow+'). Odśwież stronę.';
+  }catch(e){ st.className='stan zle'; st.textContent='Nie udało się zapisać. Spróbuj jeszcze raz.'; }
+  b.disabled=false;
+  setTimeout(()=>{ if(st.classList.contains('ok')){ st.className='stan';
+    st.textContent='Zmiany zobaczysz na stronie zaraz po zapisaniu.'; } },7000);
+});
+</script>
+</body>
+</html>
